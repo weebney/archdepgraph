@@ -8,7 +8,7 @@
 	<title>Arch Linux Dependency Graph</title>
 	<meta name="description" content="Visualize coupling at the package level by graphing the full dependency chain of an Arch Linux package.">
     <meta name="robots" content="noindex,nofollow">
-	
+
 	<script src="https://unpkg.com/cytoscape@3.25.0/dist/cytoscape.min.js"></script>
 	<link rel="stylesheet" href="styles.css">
 	<script defer src="./main.js"></script>
@@ -25,7 +25,7 @@
 				<h1>Arch Linux Dependency Graph</h1>
 				<br>
 				<input type="search" name="" id="search" placeholder="Package name">
-				<input type="submit" value="🔍" id="submit" onclick="initializer()">
+				<input type="submit" value="🔍" id="submit" onclick="initialize()">
 				<br>
 				<br>
 				<p>Show:</p>
@@ -38,7 +38,7 @@
 					<label for="makedeps">makedeps</label><br>
 				</form>
 				<br>
-				<p style="font-size: 0.75em;">Created by <a href="https://e-e.sh/">weebney</a>, licensed BSD0—<a
+				<p style="font-size: 0.75em;">Created by <a href="https://e-e.sh/">weebney</a>, licensed 0BSD—<a
 						href="https://github.com/weebney/archdepgraph/">source</a></p>
 			</div>
 		</div>
