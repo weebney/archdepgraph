@@ -1,235 +1,272 @@
-function initializer() {
-	e = document.getElementById("search")
-	main(e.value)
+window.onload = initializeUI;
+
+function initializeUI() {
+	tools = document.getElementById("tools")
+	hideElement(tools)
+	cybox = document.getElementById("cy")
+	hideElement(cybox)
+	legend = document.getElementById("legend")
+	hideElement(legend)
+	err = document.getElementById("error")
+	err.style.opacity = "0";
 }
 
+function updateCount(count) {
+	g = document.getElementById("count")
+	g.innerText = count
+}
+
+function hideElement(element) {
+	element.style.display = "none";
+}
+
+function showElement(element) {
+	element.style.display = "inherit";
+}
+
+function addClickEvent(element, handler) {
+	element.addEventListener("click", handler);
+}
+
+
+function initialize() {
+	const searchField = document.getElementById("search");
+	main(searchField.value);
+}
+
+const cy = cytoscape({
+	wheelSensitivity: 0.2,
+	container: document.getElementById("cy"),
+	style: [
+		{
+			selector: "node",
+			style: {
+				label: "data(id)"
+			}
+		},
+		{
+			selector: ".pkg",
+			style: {
+				"background-color": "navy"
+			}
+		},
+		{
+			selector: ".dep",
+			style: {
+				"background-color": "red"
+			}
+		},
+		{
+			selector: ".parent",
+			style: {
+				"background-color": "green"
+			}
+		},
+		{
+			selector: ".depedge",
+			style: {
+				"curve-style": "bezier",
+				"target-arrow-shape": "triangle"
+			}
+		},
+		{
+			selector: ".makedepedge",
+			style: {
+				"curve-style": "bezier",
+				"target-arrow-shape": "triangle",
+				"line-style": "dashed"
+			}
+		},
+		{
+			selector: ".checkdepedge",
+			style: {
+				"curve-style": "bezier",
+				"target-arrow-shape": "triangle",
+				"line-style": "dotted"
+			}
+		}
+	]
+});
+
 function main(initialPkg) {
-	e = document.getElementById("modal");
-	e.style.display = "none";
-	e = document.getElementById("modalholder");
-	e.style.display = "none";
+	const modal = document.getElementById("modal");
+	hideElement(modal);
 
-	f = document.getElementById("cy")
-	f.style.display = "inherit";
-	f = document.getElementById("legend")
-	f.style.display = "unset";
+	const modalHolder = document.getElementById("modalholder");
+	hideElement(modalHolder);
 
-	e = document.getElementById("tools")
-	e.style.display = "unset";
+	const cybox = document.getElementById("cy");
+	showElement(cybox);
 
-	var cy = cytoscape({
-		wheelSensitivity: 0.2,
-		container: document.getElementById("cy"),
-		style: [
-			{
-				selector: 'node',
-				style: {
-					'label': 'data(id)'
-				}
-			},
+	const legend = document.getElementById("legend");
+	showElement(legend);
 
+	const tools = document.getElementById("tools");
+	showElement(tools);
 
-			{
-				selector: '.pkg',
-				style: {
-					'background-color': 'navy',
-				}
-			},
-
-			{
-				selector: '.dep',
-				style: {
-					'background-color': 'red',
-				}
-			},
-
-			{
-				selector: '.parent',
-				style: {
-					'background-color': 'green',
-				}
-			},
-
-			{
-				selector: '.depedge',
-				style: {
-					'curve-style': "bezier",
-					'target-arrow-shape': 'triangle'
-				}
-			},
-			{
-				selector: '.makedepedge',
-				style: {
-					'curve-style': "bezier",
-					'target-arrow-shape': 'triangle',
-					'line-style': 'dashed',
-				}
-			},
-			{
-				selector: '.checkdepedge',
-				style: {
-					'curve-style': "bezier",
-					'target-arrow-shape': 'triangle',
-					'line-style': 'dotted',
-				}
-			},
-		]
-	});
-
-	addPkg(initialPkg)
+	const expandTierBtn = document.getElementById("expandTier");
+	addClickEvent(expandTierBtn, expandTier);
+	expandTierBtn.addEventListener("click", expandTier);
+	addPkg(initialPkg);
 
 	async function addPkg(name) {
-		showMakedeps = document.getElementById("makedeps").checked
-		showCheckdeps = document.getElementById("checkdeps").checked
-
-		let e
+		const makedepsChecked = document.getElementById("makedeps").checked;
+		const checkdepsChecked = document.getElementById("checkdeps").checked;
 
 		if (cy.getElementById(name).length === 0) {
-			e = cy.add([{ group: 'nodes', data: { id: name, classes: "pkg" }, }])
-			e.addClass('parent')
+			const node = cy.add([
+				{ group: "nodes", data: { id: name, classes: "pkg" } }
+			]);
+			node.addClass("parent");
 		} else {
-			e = cy.getElementById(name)
+			const node = cy.getElementById(name);
 
-			if (e.hasClass("pkg")) {
-				return
+			if (node.hasClass("pkg")) {
+				return;
 			}
 
-			e.removeClass('dep')
-			e.addClass('pkg')
+			node.removeClass("dep");
+			node.addClass("pkg");
 		}
 
 		const deps = await getDeps(name);
 
 		if (typeof deps === "undefined") {
-			return
+			return;
 		}
 
-		if (deps.hasOwnProperty('deps')) {
-			deps.deps.forEach((element) => {
-				e = cy.add([{ group: 'nodes', data: { id: element }, }])
-				e.addClass('dep')
-				e = cy.add([{ group: 'edges', data: { id: name + "_" + element, source: name, target: element } }])
-				e.addClass('depedge')
+		if (deps.hasOwnProperty("deps")) {
+			deps.deps.forEach(element => {
+				const node = cy.add([{ group: "nodes", data: { id: element } }]);
+				node.addClass("dep");
+				const edge = cy.add([
+					{
+						group: "edges",
+						data: { id: `${name}_${element}`, source: name, target: element }
+					}
+				]);
+				edge.addClass("depedge");
 
-				cy.getElementById(element).on('click', function (e) {
-					addPkg(element)
-				})
-			});
-		}
-		if (deps.hasOwnProperty('makedeps') && showMakedeps) {
-			deps.makedeps.forEach((element) => {
-				e = cy.add([{ group: 'nodes', data: { id: element }, }])
-				e.addClass('dep')
-				e = cy.add([{ group: 'edges', data: { id: name + "_" + element, source: name, target: element } }])
-				e.addClass('makedepedge')
-
-				cy.getElementById(element).on('click', function (e) {
-					addPkg(element)
-				});
-			});
-		}
-		if (deps.hasOwnProperty('checkdeps') && showCheckdeps) {
-			deps.checkdeps.forEach((element) => {
-				e = cy.add([{ group: 'nodes', data: { id: element }, }])
-				e.addClass('dep')
-				e = cy.add([{ group: 'edges', data: { id: name + "_" + element, source: name, target: element } }])
-				e.addClass('checkdepedge')
-
-				cy.getElementById(element).on('click', function (e) {
-					addPkg(element)
+				cy.getElementById(element).on("click", function (e) {
+					addPkg(element);
 				});
 			});
 		}
 
-		var layout = cy.layout({ name: 'circle' });
+		if (deps.hasOwnProperty("makedeps") && makedepsChecked) {
+			deps.makedeps.forEach(element => {
+				const node = cy.add([{ group: "nodes", data: { id: element } }]);
+				node.addClass("dep");
+				const edge = cy.add([
+					{
+						group: "edges",
+						data: { id: `${name}_${element}`, source: name, target: element }
+					}
+				]);
+				edge.addClass("makedepedge");
+
+				cy.getElementById(element).on("click", function (e) {
+					addPkg(element);
+				});
+			});
+		}
+
+		if (deps.hasOwnProperty("checkdeps") && checkdepsChecked) {
+			deps.checkdeps.forEach(element => {
+				const node = cy.add([{ group: "nodes", data: { id: element } }]);
+				node.addClass("dep");
+				const edge = cy.add([
+					{
+						group: "edges",
+						data: { id: `${name}_${element}`, source: name, target: element }
+					}
+				]);
+				edge.addClass("checkdepedge");
+
+				cy.getElementById(element).on("click", function (e) {
+					addPkg(element);
+				});
+			});
+		}
+
+		const layout = cy.layout({ name: "circle" });
 		layout.run();
-		updateCount(cy.nodes().length)
-
+		updateCount(cy.nodes().length);
 	}
-
-	et = document.getElementById("expandTier")
-	et.addEventListener("click", expandTier);
 
 	function expandTier() {
-		cy.nodes().forEach((e) => {
-			addPkg(e._private.data.id)
-		}
-		)
+		cy.nodes().forEach(node => {
+			addPkg(node._private.data.id);
+		});
 	}
+
+	const resetZoomBtn = document.getElementById("resetZoom");
+	resetZoomBtn.addEventListener("click", () => {
+		cy.fit();
+	});
 
 	async function getDeps(name) {
 		try {
-			const data = await makeFetch(`https://corsproxy.io/?https://archlinux.org/packages/search/json/?name=${name}`);
-			let jsonData = JSON.parse(data).results[0];
+			const data = await makeFetch(
+				`https://corsproxy.io/?https://archlinux.org/packages/search/json/?name=${name}`
+			);
+			const jsonData = JSON.parse(data).results[0];
+
 			if (typeof jsonData === "undefined") {
-				return
+				return;
 			}
-			if (!jsonData.hasOwnProperty('depends')) {
+
+			if (!jsonData.hasOwnProperty("depends")) {
 				jsonData.depends = "";
 			}
-			if (!jsonData.hasOwnProperty('makedepends')) {
+
+			if (!jsonData.hasOwnProperty("makedepends")) {
 				jsonData.makedepends = "";
 			}
-			if (!jsonData.hasOwnProperty('checkdepends')) {
+
+			if (!jsonData.hasOwnProperty("checkdepends")) {
 				jsonData.checkdepends = "";
 			}
 
-			for (let i = 0; i < jsonData.depends.length; i++) {
-				jsonData.depends[i] = jsonData.depends[i].split(">")[0]
-				jsonData.depends[i] = jsonData.depends[i].split("=")[0]
-				jsonData.depends[i] = jsonData.depends[i].split("<")[0]
-			}
-			for (let i = 0; i < jsonData.makedepends.length; i++) {
-				jsonData.makedepends[i] = jsonData.makedepends[i].split(">")[0]
-				jsonData.makedepends[i] = jsonData.makedepends[i].split("=")[0]
-				jsonData.makedepends[i] = jsonData.makedepends[i].split("<")[0]
-			}
-			for (let i = 0; i < jsonData.checkdepends.length; i++) {
-				jsonData.checkdepends[i] = jsonData.checkdepends[i].split(">")[0]
-				jsonData.checkdepends[i] = jsonData.checkdepends[i].split("=")[0]
-				jsonData.checkdepends[i] = jsonData.checkdepends[i].split("<")[0]
-			}
-
+			jsonData.depends = jsonData.depends.map(dep => dep.split(">")[0].split("=")[0].split("<")[0]);
+			jsonData.makedepends = jsonData.makedepends.map(makedep => makedep.split(">")[0].split("=")[0].split("<")[0]);
+			jsonData.checkdepends = jsonData.checkdepends.map(checkdep => checkdep.split(">")[0].split("=")[0].split("<")[0]);
 			return {
 				deps: jsonData.depends,
 				makedeps: jsonData.makedepends,
-				checkdeps: jsonData.checkdepends,
+				checkdeps: jsonData.checkdepends
 			};
 		} catch (error) {
-			console.error('Error fetching data:', error);
-			errorToggle(error)
+			console.error("Error fetching data:", error);
+			// errorToggle(error);
 			return {};
 		}
 	}
 
 	function errorToggle(error) {
-		e = document.getElementById("error")
-		e.style.opacity = 100;
-		e.style.visibility = "unset";
-		e.innerText = error
+		const errorElem = document.getElementById("error");
+		errorElem.style.opacity = 100;
+		errorElem.style.visibility = "unset";
+		errorElem.innerText = error;
+
 		setTimeout(() => {
-			e.style.opacity = 0;
+			errorElem.style.opacity = 0;
 		}, 2000);
 	}
-
-	z = document.getElementById("resetZoom")
-	z.addEventListener("click", () => {
-		cy.fit()
-	})
-
 
 	async function makeFetch(url) {
 		try {
 			const response = await fetch(url);
+
 			if (!response.ok) {
 				throw new Error(`Request failed with status: ${response.status}`);
 			}
+
 			const data = await response.text();
 			return data;
 		} catch (error) {
-			console.error(error);
+			errorToggle(error);
+			return {};
 		}
 	}
-
-
 }
