@@ -1,6 +1,6 @@
-window.onload = main2;
+window.onload = initializeUI;
 
-function main2() {
+function initializeUI() {
 	e = document.getElementById("tools")
 	e.style.display = "none";
 	e = document.getElementById("cy")
