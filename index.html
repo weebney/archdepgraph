@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Arch Linux Dependency Graph</title>
+	<meta name="description" content="Visualize coupling at the package level by graphing the full dependency chain of an Arch Linux package.">
+    <meta name="robots" content="noindex,nofollow">
+	
+	<script src="https://unpkg.com/cytoscape@3.25.0/dist/cytoscape.min.js"></script>
+	<link rel="stylesheet" href="styles.css">
+	<script defer src="./main.js"></script>
+	<script defer src="./load.js"></script>
+</head>
+
+<body>
+	<div id="cy">
+	</div>
+
+	<div id="modalholder">
+		<div id="modal">
+			<div>
+				<h1>Arch Linux Dependency Graph</h1>
+				<br>
+				<input type="search" name="" id="search" placeholder="Package name">
+				<input type="submit" value="🔍" id="submit" onclick="initializer()">
+				<br>
+				<br>
+				<p>Show:</p>
+
+				<form>
+					<input type="checkbox" id="checkdeps" name="checkdeps" value="checkdeps" checked>
+					<label for="checkdeps">checkdeps</label><br>
+
+					<input type="checkbox" id="makedeps" name="makedeps" value="makedeps">
+					<label for="makedeps">makedeps</label><br>
+				</form>
+				<br>
+				<p style="font-size: 0.75em;">Created by <a href="https://e-e.sh/">weebney</a>, licensed BSD0—<a
+						href="https://github.com/weebney/archdepgraph/">source</a></p>
+			</div>
+		</div>
+	</div>
+
+	<div id="error">
+		<p>Error!</p>
+		<br>
+		<p></p>
+	</div>
+
+	<div id="tools">
+		<div>
+			<button id="expandTier">Expand Visible</button>
+			<button id="resetZoom">Reset Zoom</button>
+			<br>
+			<br>
+			<div style="display: flex;gap:1em;">
+				<p>Total Packages:</p>
+				<p id="count">1</p>
+			</div>
+		</div>
+	</div>
+
+	<div id="legend">
+		<div style="width: 5em;">
+			<p>Dep</p>
+			<hr style="border: 1px solid grey;">
+			<p>Makedep</p>
+			<hr style="border: 1px dashed grey;">
+			<p>Checkdep</p>
+			<hr style="border: 1px dotted grey;">
+		</div>
+	</div>
+
+</body>
+
+</html>
